@@ -1,82 +1,92 @@
 # Lab 3: Landscaper
 
 def main():
-    money = 0
-    tools = ['teeth']
-    earnings = {'teeth': 1, 'rusty scissors': 5, 'old-timey push lawnmower': 50, 'fancy battery-powered lawnmower': 100}
-    has_scissors = False
-    has_lawnmower = False
-    has_fancy_lawnmower = False
-    
+    # Function to reset the game state
+    def reset_game():
+        return {
+            'money': 0,
+            'tools': {'teeth': 1},
+            'earnings': {'teeth': 1, 'rusty scissors': 5, 'old-timey push lawnmower': 50, 'fancy battery-powered lawnmower': 100, 'team of starving students': 250},
+            'prices': {'rusty scissors': 5, 'old-timey push lawnmower': 25, 'fancy battery-powered lawnmower': 250, 'team of starving students': 500},
+            'has_team': False
+        }
+
+    # Initialize the game state
+    game_state = reset_game()
+
     print("Welcome to the Landscaper game!")
     print("You are starting a landscaping business, but all you have are your teeth.")
-    
+
+    # Main game loop
     while True:
-        print(f"\nYou currently have ${money}.")
+        print(f"\nYou currently have ${game_state['money']}.")
         print("What would you like to do?")
         
-        # Display options based on the tools the player has
-        print("1. Cut the lawn with your teeth and earn $1.")
-        if has_scissors:
-            print("2. Cut the lawn with your rusty scissors and earn $5.")
-        if has_lawnmower:
-            print("3. Cut the lawn with your old-timey push lawnmower and earn $50.")
-        if has_fancy_lawnmower:
-            print("4. Cut the lawn with your fancy battery-powered lawnmower and earn $100.")
+        # Display main menu options
+        print("1. Cut the lawn and earn money.")
+        print("2. Buy tools.")
+        print("3. Sell tools.")
+        print("4. Reset game.")
+        print("5. Quit the game.")
         
-        # Conditional buying options
-        if not has_scissors:
-            print("5. Buy a pair of rusty scissors for $5.")
-        elif not has_lawnmower:
-            print("5. Buy an old-timey push lawnmower for $25.")
-        elif not has_fancy_lawnmower:
-            print("5. Buy a fancy battery-powered lawnmower for $250.")
-        
-        print("6. Quit the game.")
-        
+        # Get user's choice
         choice = input("Enter the number of your choice: ")
-        
+
         if choice == '1':
-            money += earnings['teeth']
-            print(f"\nYou cut the lawn with your teeth and earned $1. You now have ${money}.")
-        elif choice == '2' and has_scissors:
-            money += earnings['rusty scissors']
-            print(f"\nYou cut the lawn with your rusty scissors and earned $5. You now have ${money}.")
-        elif choice == '3' and has_lawnmower:
-            money += earnings['old-timey push lawnmower']
-            print(f"\nYou cut the lawn with your old-timey push lawnmower and earned $50. You now have ${money}.")
-        elif choice == '4' and has_fancy_lawnmower:
-            money += earnings['fancy battery-powered lawnmower']
-            print(f"\nYou cut the lawn with your fancy battery-powered lawnmower and earned $100. You now have ${money}.")
-        elif choice == '5' and not has_scissors:
-            if money >= 5:
-                money -= 5
-                tools.append('rusty scissors')
-                has_scissors = True
-                print("\nYou bought a pair of rusty scissors for $5.")
+            # Calculate daily earnings based on owned tools
+            daily_earnings = sum(game_state['earnings'][tool] * count for tool, count in game_state['tools'].items())
+            game_state['money'] += daily_earnings
+            print(f"\nYou cut the lawn and earned ${daily_earnings}. You now have ${game_state['money']}.")
+        elif choice == '2':
+            # Display tools available for purchase
+            print("\nTools available for purchase:")
+            for tool, price in game_state['prices'].items():
+                if tool not in game_state['tools']:
+                    print(f"{tool}: ${price}")
+            tool_choice = input("Enter the tool you want to buy: ").lower()
+            # Buy the chosen tool if affordable
+            if tool_choice in game_state['prices'] and game_state['money'] >= game_state['prices'][tool_choice]:
+                game_state['money'] -= game_state['prices'][tool_choice]
+                if tool_choice in game_state['tools']:
+                    game_state['tools'][tool_choice] += 1
+                else:
+                    game_state['tools'][tool_choice] = 1
+                print(f"\nYou bought {tool_choice} for ${game_state['prices'][tool_choice]}.")
+                if tool_choice == 'team of starving students':
+                    game_state['has_team'] = True
             else:
-                print("\nYou don't have enough money to buy the rusty scissors.")
-        elif choice == '5' and has_scissors and not has_lawnmower:
-            if money >= 25:
-                money -= 25
-                tools.append('old-timey push lawnmower')
-                has_lawnmower = True
-                print("\nYou bought an old-timey push lawnmower for $25.")
+                print("\nYou don't have enough money to buy that tool or it is not available.")
+        elif choice == '3':
+            # Display tools available for sale
+            print("\nTools available for sale:")
+            for tool, count in game_state['tools'].items():
+                if tool != 'teeth' and count > 0:
+                    print(f"{tool}: ${game_state['prices'][tool] // 2} (You have {count})")
+            tool_choice = input("Enter the tool you want to sell: ").lower()
+            # Sell the chosen tool if owned
+            if tool_choice in game_state['tools'] and game_state['tools'][tool_choice] > 0:
+                game_state['tools'][tool_choice] -= 1
+                game_state['money'] += game_state['prices'][tool_choice] // 2
+                if game_state['tools'][tool_choice] == 0:
+                    del game_state['tools'][tool_choice]
+                print(f"\nYou sold {tool_choice} for ${game_state['prices'][tool_choice] // 2}.")
             else:
-                print("\nYou don't have enough money to buy the old-timey push lawnmower.")
-        elif choice == '5' and has_lawnmower and not has_fancy_lawnmower:
-            if money >= 250:
-                money -= 250
-                tools.append('fancy battery-powered lawnmower')
-                has_fancy_lawnmower = True
-                print("\nYou bought a fancy battery-powered lawnmower for $250.")
-            else:
-                print("\nYou don't have enough money to buy the fancy battery-powered lawnmower.")
-        elif choice == '6':
-            print(f"\nThank you for playing! You ended with ${money}.")
+                print("\nYou don't have that tool to sell.")
+        elif choice == '4':
+            # Reset the game state
+            game_state = reset_game()
+            print("\nThe game has been reset.")
+        elif choice == '5':
+            # Quit the game
+            print(f"\nThank you for playing! You ended with ${game_state['money']}.")
             break
         else:
             print("\nInvalid choice. Please enter a valid number.")
-        
+
+        # Check for win condition
+        if game_state['has_team'] and game_state['money'] >= 1000:
+            print(f"\nCongratulations! You've won the game with a team of starving students and ${game_state['money']}!")
+            break
+
 if __name__ == "__main__":
     main()
