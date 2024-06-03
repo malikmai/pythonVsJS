@@ -8,6 +8,67 @@ def get_random_word():
 
 #print(get_random_word())
 
+def display_hangman(guesses_left):
+    stages = [
+        """
+           ------
+           |    |
+           |    O
+           |   /|\\
+           |   / \\
+           -
+        """,
+        """
+           ------
+           |    |
+           |    O
+           |   /|\\
+           |   /
+           -
+        """,
+        """
+           ------
+           |    |
+           |    O
+           |   /|\\
+           |
+           -
+        """,
+        """
+           ------
+           |    |
+           |    O
+           |   /|
+           |
+           -
+        """,
+        """
+           ------
+           |    |
+           |    O
+           |    |
+           |
+           -
+        """,
+        """
+           ------
+           |    |
+           |    O
+           |
+           |
+           -
+        """,
+        """
+           ------
+           |    |
+           |
+           |
+           |
+           -
+        """
+    ]
+    return stages[guesses_left]
+
 def play_game():
     word = get_random_word()
     word_length = len(word)
@@ -20,6 +81,7 @@ def play_game():
     print(f"The word has {word_length} letters.")
     
     while guesses_left > 0 and not win:
+        print(display_hangman(guesses_left))
         print("Word: " + " ".join(guessed_letters))
         print(f"Incorrect guesses: {', '.join(guessed_incorrectly)}")
         print(f"Guesses left: {guesses_left}")
@@ -48,6 +110,7 @@ def play_game():
         print("Congratulations, you've won!")
         print(f"The word was: {word}")
     else:
+        print(display_hangman(guesses_left))
         print("Sorry, you've lost.")
         print(f"The word was: {word}")
 
